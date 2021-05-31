@@ -1,15 +1,10 @@
 name: Node.js CI
 
 on:
-#  pull_request:
-#    branches:
-#      - "master/**"
   push:
-    branches:
-      - '**'
-    paths:
-      - apis/userprofile/*
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -25,6 +20,7 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
-          path: apis/userprofile/tests
           node-version: ${{ matrix.node-version }}
-      - run: npm run test --workspace=apis/userprofile
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm test
