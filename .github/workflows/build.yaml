@@ -23,3 +23,11 @@ jobs:
         dockerfile: apis/userprofile/Dockerfile
         tag_with_sha: true
         push: false
+    - uses: nashmaniac/create-issue-action@v1.1
+      name: Create Issue Action
+      with:
+        title: Build Failed
+        token: ${{secrets.GITHUB_TOKEN}}
+        assignees: ${{github.actor}}
+        labels: worflow-failed
+        body: Workflow failed for commit ${{github.sha}}
