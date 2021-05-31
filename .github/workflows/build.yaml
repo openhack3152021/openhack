@@ -1,11 +1,5 @@
 name: Build Docker Image
 on:
-#  pull_request:
-#    branches:
-#      - "master/**"
-  push:
-    branches:
-      - '**'
     paths:
       - apis/userprofile/*
   workflow_dispatch:
