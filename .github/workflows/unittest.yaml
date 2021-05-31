@@ -29,4 +29,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: |
           cd ${GITHUB_WORKSPACE}/apis/userprofile
+          npm install
+          npm start
           npm run test
