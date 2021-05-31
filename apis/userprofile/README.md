@@ -6,7 +6,7 @@ This api uses node 8.x LTS and express as the server and c
 
 ## Running the server
 
-To run the server, run:
+To run the server, run (execute):
 
 ```shell
 npm start
