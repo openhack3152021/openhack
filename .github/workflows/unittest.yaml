@@ -27,4 +27,6 @@ jobs:
         with:
           path: "./apis/userprofile"
           node-version: ${{ matrix.node-version }}
-      - run: npm run test
+      - run: |
+          cd ${GITHUB_WORKSPACE}/apis/userprofile
+          npm run test
