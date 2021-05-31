@@ -24,6 +24,7 @@ jobs:
         tag_with_sha: true
         push: false
     - uses: nashmaniac/create-issue-action@v1.1
+      if: ${{ failure() }}
       name: Create Issue Action
       with:
         title: Build Failed
