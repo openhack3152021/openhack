@@ -25,6 +25,6 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
-          path: apis/userprofile/tests
+          path: "./apis/userprofile"
           node-version: ${{ matrix.node-version }}
-      - run: npm run test --workspace=apis/userprofile
+      - run: npm run test
