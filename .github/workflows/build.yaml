@@ -20,7 +20,7 @@ jobs:
       with:
         registry: openhack37d5bau5acr.azurecr.io
         repository: devopsoh/api-userprofile
-        dockerfile: apis/userprofile/Dockerfile
+        dockerfile: apis/userprofile/Dockerfile_removethis
         tag_with_sha: true
         push: false
     - uses: nashmaniac/create-issue-action@v1.1
