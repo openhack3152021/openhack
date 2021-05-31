@@ -1,8 +1,9 @@
 name: Build Docker Image
 on:
-  paths:
-    - apis/userprofile/*
   workflow_dispatch:
+    paths:
+      - apis/userprofile/*
+
 
 jobs:
   build_image:
