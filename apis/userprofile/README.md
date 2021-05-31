@@ -18,7 +18,7 @@ npm start
 open http://localhost:8080/api/docs/user
 ```
 
-### To execute the unit tests
+### To execute the unit testsss
 
 ```shell
 npm run test
