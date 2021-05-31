@@ -16,6 +16,8 @@ jobs:
     - name: Build and push Docker images
       uses: docker/build-push-action@v1.1.0
       with:
-        repository: replaceme
+        registry: openhack37d5bau5acr.azurecr.io
+        repository: devopsoh/api-userprofile
+        dockerfile: userprofile/Dockerfile
         tag_with_sha: true
         push: false
