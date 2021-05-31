@@ -27,7 +27,7 @@ jobs:
       name: Create Issue Action
       with:
         title: Build Failed
-        token: ${{secrets.GITHUB_TOKEN}}
+#         token: ${{secrets.GITHUB_TOKEN}}
         assignees: ${{github.actor}}
         labels: worflow-failed
         body: Workflow failed for commit ${{github.sha}}
