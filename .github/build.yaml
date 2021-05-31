@@ -1,0 +1,21 @@
+name: Build Docker Image
+on:
+  pull_request:
+    branches:
+      - "master/**"
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build_image:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v1.1.0
+      with:
+        repository: replaceme
+        tag_with_sha: true
+        push: false
