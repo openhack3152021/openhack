@@ -1,8 +1,8 @@
 name: Build Docker Image
 on:
-  pull_request:
-    branches:
-      - "master/**"
+#  pull_request:
+#    branches:
+#      - "master/**"
   push:
     branches:
       - '**'
@@ -20,6 +20,6 @@ jobs:
       with:
         registry: openhack37d5bau5acr.azurecr.io
         repository: devopsoh/api-userprofile
-        dockerfile: userprofile/Dockerfile
+        dockerfile: openhack/userprofile/Dockerfile
         tag_with_sha: true
         push: false
