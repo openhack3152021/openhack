@@ -7,7 +7,7 @@ on:
     branches:
       - '**'
     paths:
-      - apis/userprofile
+      - apis/userprofile/*
   workflow_dispatch:
 
 jobs:
