@@ -1,0 +1,50 @@
+name: CI_JOB
+on:
+#  pull_request:
+#    branches:
+#      - "master/**"
+  push:
+    branches:
+      - '**'
+    paths:
+      - apis/userprofile/*
+  workflow_dispatch:
+
+jobs:
+  run_unit_test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x, 15.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          path: "./apis/userprofile"
+          node-version: ${{ matrix.node-version }}
+      - run: |
+          cd ${GITHUB_WORKSPACE}/apis/userprofile
+          npm install
+          npm test
+  build_image:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v1.1.0
+      with:
+        registry: openhack37d5bau5acr.azurecr.io
+        repository: devopsoh/api-userprofile
+        dockerfile: apis/userprofile/Dockerfile
+        tag_with_sha: true
+        push: false
+    - uses: nashmaniac/create-issue-action@v1.1
+      if: ${{ failure() }}
+      name: Create Issue Action
+      with:
+        title: Build Failed
+        token: ${{secrets.GIT_TOKEN}}
+        assignees: ${{github.actor}}
+        labels: worflow-failed
+        body: Workflow failed for commit ${{github.sha}}
