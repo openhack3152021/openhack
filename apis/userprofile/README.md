@@ -6,7 +6,8 @@ This api uses node 8.x LTS and express as the server and c
 
 ## Running the server
 
-To run the server, run:
+# TAMIR
+To run the server, run (execute):
 
 ```shell
 npm start
@@ -18,7 +19,7 @@ npm start
 open http://localhost:8080/api/docs/user
 ```
 
-### To execute the unit tests
+### To execute the unit testsss
 
 ```shell
 npm run test
