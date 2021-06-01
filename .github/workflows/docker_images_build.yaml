@@ -33,7 +33,7 @@ jobs:
         docker push ${DOCKER_IMAGE}
 
         echo "building poi"
-        cd ${GITHUB_WORKSPACE}/apis/poi
+        cd ${GITHUB_WORKSPACE}/apis/poi/web
         DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-poi:${{ github.sha }}
         docker build . -t ${DOCKER_IMAGE}
         docker push ${DOCKER_IMAGE}
