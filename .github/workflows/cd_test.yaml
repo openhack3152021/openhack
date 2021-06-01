@@ -78,7 +78,7 @@ jobs:
     - name: swap-userprofile
       run: |
         RG=${{ secrets.RESOURCE_GROUP }}
-        Name="openhack37d5bau5userprofile"
+        NAME="openhack37d5bau5userprofile"
         echo "swapping userprofile"
         az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
 
