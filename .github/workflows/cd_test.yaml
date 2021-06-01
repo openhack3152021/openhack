@@ -32,6 +32,8 @@ jobs:
   deployment_test:
     runs-on: ubuntu-latest
     needs: build_image
+    outputs:
+      webapp-url: ${{ steps.userprofiledeployment.outputs.webapp-url }}
     steps:
       - name: Login to Azure
         uses: azure/login@v1
@@ -54,7 +56,7 @@ jobs:
         uses: jtalk/url-health-check-action@v1.5
         with:
           # Check the following URLs one by one sequentially
-          url: '${{ deployment_test.steps.userprofiledeployment.outputs.webapp-url }}'
+          url: '${{ needs.deployment_test.outputs.webapp-url }}'
           # Follow redirects, or just report success on 3xx status codes
           follow-redirect: no # Optional, defaults to "no"
           # Fail this action after this many failed attempts
