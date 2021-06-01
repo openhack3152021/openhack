@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_image
     outputs:
-      webapp-url: ${{ steps.userprofiledeployment.outputs.webapp-url }}
+      userprofiledeployment-webapp-url: ${{ steps.userprofiledeployment.outputs.webapp-url }}
     steps:
       - name: Login to Azure
         uses: azure/login@v1
@@ -56,7 +56,7 @@ jobs:
         uses: jtalk/url-health-check-action@v1.5
         with:
           # Check the following URLs one by one sequentially
-          url: '${{ needs.deployment_test.outputs.webapp-url }}'
+          url: '${{ needs.deployment_test.outputs.userprofiledeployment-webapp-url }}/api/healthcheck/user'
           # Follow redirects, or just report success on 3xx status codes
           follow-redirect: no # Optional, defaults to "no"
           # Fail this action after this many failed attempts
@@ -65,6 +65,23 @@ jobs:
           retry-delay: 5s # Optional, only applicable to max-attempts > 1
           # Retry all errors, including 404
           retry-all: no # Optional, defaults to "no"
+
+
+  promote-staging-to-production:
+    runs-on: ubuntu-latest
+    needs: validation_phase
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: swap-userprofile
+    - run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        Name="openhack37d5bau5userprofile"
+        echo "swapping userprofile"
+        az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+
 
 
   
