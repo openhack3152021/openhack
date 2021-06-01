@@ -44,6 +44,7 @@ jobs:
         docker push ${DOCKER_IMAGE}
 
         echo "building user-java"
+        cd ${GITHUB_WORKSPACE}/apis/user-java
         DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-user-java:${{ github.sha }}
         docker build . -t ${DOCKER_IMAGE}
         docker push ${DOCKER_IMAGE}
