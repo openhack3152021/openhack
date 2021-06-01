@@ -11,7 +11,7 @@ jobs:
     - name: Checkout Github
     - uses: actions/checkout@v2
     - name: Login to Azure
-    - uses: azure/login@v1
+      uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
     - name: Build and Push Docker image
