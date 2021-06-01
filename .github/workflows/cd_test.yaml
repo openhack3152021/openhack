@@ -46,7 +46,7 @@ jobs:
         id: 'userprofiledeployment'
 
 
-    validation_phase:
+  validation_phase:
     runs-on: ubuntu-latest
     needs: deployment_test
     steps:
@@ -54,7 +54,7 @@ jobs:
         uses: jtalk/url-health-check-action@v1.5
         with:
           # Check the following URLs one by one sequentially
-          url: '${{ steps.settings.outputs.webapp-url }}'
+          url: '${{ deployment_test.steps.userprofiledeployment.outputs.webapp-url }}'
           # Follow redirects, or just report success on 3xx status codes
           follow-redirect: no # Optional, defaults to "no"
           # Fail this action after this many failed attempts
