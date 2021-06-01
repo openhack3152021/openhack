@@ -76,7 +76,7 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
     - name: swap-userprofile
-    - run: |
+      run: |
         RG=${{ secrets.RESOURCE_GROUP }}
         Name="openhack37d5bau5userprofile"
         echo "swapping userprofile"
