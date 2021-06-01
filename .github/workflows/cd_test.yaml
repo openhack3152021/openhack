@@ -42,4 +42,5 @@ jobs:
         with:
           app-name: 'openhack37d5bau5userprofile'
           images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-userprofile:${{ github.sha }}'
+          slot-name: 'openhack37d5bau5userprofile-staging'
 
