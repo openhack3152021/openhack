@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Checkout Github
+      name: Checkout Github
     - name: Login to Azure
       uses: azure/login@v1
       with:
