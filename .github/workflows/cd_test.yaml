@@ -43,4 +43,27 @@ jobs:
           app-name: 'openhack37d5bau5userprofile'
           images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-userprofile:${{ github.sha }}'
           slot-name: 'staging'
+        id: 'userprofiledeployment'
+
+
+    validation_phase:
+    runs-on: ubuntu-latest
+    needs: deployment_test
+    steps:
+      - name: Check the deployed service URL
+        uses: jtalk/url-health-check-action@v1.5
+        with:
+          # Check the following URLs one by one sequentially
+          url: '${{ steps.settings.outputs.webapp-url }}'
+          # Follow redirects, or just report success on 3xx status codes
+          follow-redirect: no # Optional, defaults to "no"
+          # Fail this action after this many failed attempts
+          max-attempts: 3 # Optional, defaults to 1
+          # Delay between retries
+          retry-delay: 5s # Optional, only applicable to max-attempts > 1
+          # Retry all errors, including 404
+          retry-all: no # Optional, defaults to "no"
+
+
+  
 
