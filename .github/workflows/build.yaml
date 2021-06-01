@@ -1,8 +1,6 @@
 name: Build Docker Image
 on:
   workflow_dispatch:
-    paths:
-      - apis/userprofile/*
 
 jobs:
   build_image:
@@ -21,8 +19,28 @@ jobs:
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
     - run: |
+        REPO_NAME=devopsoh
+
+        echo "building userprofile"
         cd ${GITHUB_WORKSPACE}/apis/userprofile
-        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/devopsoh/api-userprofile:${{ github.sha }}
+        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-userprofile:${{ github.sha }}
+        docker build . -t ${DOCKER_IMAGE}
+        docker push ${DOCKER_IMAGE}
+
+        echo "building poi"
+        cd ${GITHUB_WORKSPACE}/apis/poi/web
+        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-poi:${{ github.sha }}
+        docker build . -t ${DOCKER_IMAGE}
+        docker push ${DOCKER_IMAGE}
+
+        echo "building trips"
+        cd ${GITHUB_WORKSPACE}/apis/trips
+        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-trips:${{ github.sha }}
+        docker build . -t ${DOCKER_IMAGE}
+        docker push ${DOCKER_IMAGE}
+
+        echo "building user-java"
+        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-user-java:${{ github.sha }}
         docker build . -t ${DOCKER_IMAGE}
         docker push ${DOCKER_IMAGE}
     - uses: nashmaniac/create-issue-action@v1.1
