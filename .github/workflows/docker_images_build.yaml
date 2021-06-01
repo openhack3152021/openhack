@@ -23,7 +23,7 @@ jobs:
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
     - run: |
-        REPO_NAME=devopsoh
+        REPO_NAME=${{ secrets.REPO_NAME }}
 
         echo "building userprofile"
         cd ${GITHUB_WORKSPACE}/apis/userprofile
@@ -52,22 +52,22 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack37d5bau5userprofile'
-        images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-userprofile:${{ github.sha }}'
+        images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-userprofile:${{ github.sha }}'
     - name: Deploy poi
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack37d5bau5poi'
-        images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-poi:${{ github.sha }}'
+        images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-poi:${{ github.sha }}'
     - name: Deploy trips
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack37d5bau5trips'
-        images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-trips:${{ github.sha }}'
+        images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-trips:${{ github.sha }}'
     - name: Deploy user-java
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack37d5bau5userjava'
-        images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-user-java:${{ github.sha }}'
+        images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-user-java:${{ github.sha }}'
 
     - uses: nashmaniac/create-issue-action@v1.1
       if: ${{ failure() }}
