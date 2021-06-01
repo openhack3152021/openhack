@@ -21,7 +21,7 @@ jobs:
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
         repository: devopsoh/api-userprofile
-      run: |
+    - run: |
         cd ${GITHUB_WORKSPACE}/apis/userprofile
         DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/devopsoh/api-userprofile:${{ github.sha }}
         docker build . -t ${DOCKER_IMAGE}
