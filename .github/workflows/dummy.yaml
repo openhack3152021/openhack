@@ -1,0 +1,21 @@
+name: CD-Test
+on:
+  workflow_dispatch:
+
+jobs:
+# Check if there is any API Degradation
+  verfiy_no_issue:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout Github
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - run: |
+        REPO_NAME=${{ secrets.REPO_NAME }}
+        echo "verifying no issues"
+        pip install requests
+        cd ${GITHUB_WORKSPACE}/scripts
+        python3.7 ${GITHUB_WORKSPACE}/scripts/verify_deployment.py
