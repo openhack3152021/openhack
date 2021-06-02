@@ -67,9 +67,41 @@ jobs:
           retry-all: no # Optional, defaults to "no"
 
 
-  promote-staging-to-production:
+  route-traffic-to-staging-50-pct:
     runs-on: ubuntu-latest
     needs: validation_phase
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: traffic-route-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "routing 50% of the traffic to staging for userprofile"
+        #az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        az webapp traffic-routing set --distribution staging=50 -g ${RG} -n ${NAME}
+
+  route-traffic-to-staging-100-pct:
+    runs-on: ubuntu-latest
+    needs: route-traffic-to-staging-50-pct
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: traffic-route-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "routing 50% of the traffic to staging for userprofile"
+        #az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        az webapp traffic-routing set --distribution staging=100 -g ${RG} -n ${NAME}
+
+  promote-staging-to-production:
+    runs-on: ubuntu-latest
+    needs: route-traffic-to-staging-100-pct
     steps:
     - name: Login to Azure
       uses: azure/login@v1
