@@ -1,0 +1,317 @@
+name: Release-Pipeline
+on:
+  workflow_dispatch:
+
+jobs:
+
+# Docker Build and Push
+  build_userprofile:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout Github
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Build and Push Docker image
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    - run: |
+        REPO_NAME=${{ secrets.REPO_NAME }}
+
+        echo "building userprofile"
+        cd ${GITHUB_WORKSPACE}/apis/userprofile
+        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-userprofile:${{ github.sha }}
+        docker build . -t ${DOCKER_IMAGE}
+        docker push ${DOCKER_IMAGE}
+
+  build_poi:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout Github
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Build and Push Docker image
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    - run: |
+        REPO_NAME=${{ secrets.REPO_NAME }}
+
+        echo "building poi"
+        cd ${GITHUB_WORKSPACE}/apis/poi/web
+        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-poi:${{ github.sha }}
+        docker build . -t ${DOCKER_IMAGE}
+        docker push ${DOCKER_IMAGE}
+
+
+  build_trips:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout Github
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Build and Push Docker image
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    - run: |
+        REPO_NAME=${{ secrets.REPO_NAME }}
+
+        echo "building trips"
+        cd ${GITHUB_WORKSPACE}/apis/trips
+        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-trips:${{ github.sha }}
+        docker build . -t ${DOCKER_IMAGE}
+        docker push ${DOCKER_IMAGE}
+
+
+  build_user_java:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout Github
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Build and Push Docker image
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    - run: |
+        REPO_NAME=${{ secrets.REPO_NAME }}
+
+        echo "building user-java"
+        cd ${GITHUB_WORKSPACE}/apis/user-java
+        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-user-java:${{ github.sha }}
+        docker build . -t ${DOCKER_IMAGE}
+        docker push ${DOCKER_IMAGE}
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Deployment
+  deployment_userprofile:
+    runs-on: ubuntu-latest
+    needs: build_userprofile
+    outputs:
+      webapp-url: ${{ steps.deployment.outputs.webapp-url }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy userprofile
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'openhack37d5bau5userprofile'
+          images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-userprofile:${{ github.sha }}'
+          slot-name: 'staging'
+        id: 'deployment'
+  deployment_poi:
+    runs-on: ubuntu-latest
+    needs: build_poi
+    outputs:
+      webapp-url: ${{ steps.deployment.outputs.webapp-url }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy poi
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'openhack37d5bau5poi'
+          images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-poi:${{ github.sha }}'
+          slot-name: 'staging'
+        id: 'deployment'
+  deployment_trips:
+    runs-on: ubuntu-latest
+    needs: build_trips
+    outputs:
+      webapp-url: ${{ steps.deployment.outputs.webapp-url }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy userprofile
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'openhack37d5bau5trips'
+          images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-trips:${{ github.sha }}'
+          slot-name: 'staging'
+        id: 'deployment'
+  deployment_user_java:
+    runs-on: ubuntu-latest
+    needs: build_user_java
+    outputs:
+      webapp-url: ${{ steps.deployment.outputs.webapp-url }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy user-java
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'openhack37d5bau5userjava'
+          images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-user-java:${{ github.sha }}'
+          slot-name: 'staging'
+        id: 'deployment'
+
+# Validation
+  validation_phase:
+    runs-on: ubuntu-latest
+    needs: [deployment_userprofile, deployment_poi, deployment_trips, deployment_user_java]
+    steps:
+      - name: UserProfile - Check the deployed service URL
+        uses: jtalk/url-health-check-action@v1.5
+        with:
+          # Check the following URLs one by one sequentially
+          url: '${{ needs.deployment_userprofile.outputs.webapp-url }}/api/healthcheck/user'
+          # Follow redirects, or just report success on 3xx status codes
+          follow-redirect: no # Optional, defaults to "no"
+          # Fail this action after this many failed attempts
+          max-attempts: 3 # Optional, defaults to 1
+          # Delay between retries
+          retry-delay: 5s # Optional, only applicable to max-attempts > 1
+          # Retry all errors, including 404
+          retry-all: no # Optional, defaults to "no"
+
+      - name: POI - Check the deployed service URL
+        uses: jtalk/url-health-check-action@v1.5
+        with:
+          # Check the following URLs one by one sequentially
+          url: '${{ needs.deployment_poi.outputs.webapp-url }}/api/healthcheck/poi'
+          # Follow redirects, or just report success on 3xx status codes
+          follow-redirect: no # Optional, defaults to "no"
+          # Fail this action after this many failed attempts
+          max-attempts: 3 # Optional, defaults to 1
+          # Delay between retries
+          retry-delay: 5s # Optional, only applicable to max-attempts > 1
+          # Retry all errors, including 404
+          retry-all: no # Optional, defaults to "no"
+
+
+      - name: TRIPS - Check the deployed service URL
+        uses: jtalk/url-health-check-action@v1.5
+        with:
+          # Check the following URLs one by one sequentially
+          url: '${{ needs.deployment_trips.outputs.webapp-url }}/api/healthcheck/trips'
+          # Follow redirects, or just report success on 3xx status codes
+          follow-redirect: no # Optional, defaults to "no"
+          # Fail this action after this many failed attempts
+          max-attempts: 3 # Optional, defaults to 1
+          # Delay between retries
+          retry-delay: 5s # Optional, only applicable to max-attempts > 1
+          # Retry all errors, including 404
+          retry-all: no # Optional, defaults to "no"
+
+      - name: USER-JAVA - Check the deployed service URL
+        uses: jtalk/url-health-check-action@v1.5
+        with:
+          # Check the following URLs one by one sequentially
+          url: '${{ needs.deployment_user_java.outputs.webapp-url }}/api/healthcheck/user-java'
+          # Follow redirects, or just report success on 3xx status codes
+          follow-redirect: no # Optional, defaults to "no"
+          # Fail this action after this many failed attempts
+          max-attempts: 3 # Optional, defaults to 1
+          # Delay between retries
+          retry-delay: 5s # Optional, only applicable to max-attempts > 1
+          # Retry all errors, including 404
+          retry-all: no # Optional, defaults to "no"
+
+# Swap
+  userprofile-promote-staging-to-production:
+    runs-on: ubuntu-latest
+    needs: validation_phase
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: swap-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "swapping userprofile"
+        az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        # az webapp stop --name ${NAME} --resource-group ${RG} --slot staging
+
+  poi-promote-staging-to-production:
+    runs-on: ubuntu-latest
+    needs: validation_phase
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: swap-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5poi"
+        echo "swapping poi"
+        az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        # az webapp stop --name ${NAME} --resource-group ${RG} --slot staging
+
+  trips-promote-staging-to-production:
+    runs-on: ubuntu-latest
+    needs: validation_phase
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: swap-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5trips"
+        echo "swapping trips"
+        az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        # az webapp stop --name ${NAME} --resource-group ${RG} --slot staging
+
+
+  user-java-promote-staging-to-production:
+    runs-on: ubuntu-latest
+    needs: validation_phase
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: swap-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userjava"
+        echo "swapping user-java"
+        az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        # az webapp stop --name ${NAME} --resource-group ${RG} --slot staging
+
+
+
