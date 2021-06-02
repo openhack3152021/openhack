@@ -98,6 +98,7 @@ jobs:
     - run: |
         REPO_NAME=${{ secrets.REPO_NAME }}
         echo "verifying no issues"
+        pip install requests
         cd ${GITHUB_WORKSPACE}/scripts
         python3.7 ${GITHUB_WORKSPACE}/scripts/verify_deployment.py
 
