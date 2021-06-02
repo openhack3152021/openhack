@@ -1,0 +1,121 @@
+name: CD-Test
+on:
+  workflow_dispatch:
+
+jobs:
+  build_image:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout Github
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Build and Push Docker image
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    - run: |
+        REPO_NAME=${{ secrets.REPO_NAME }}
+
+        echo "building userprofile"
+        cd ${GITHUB_WORKSPACE}/apis/userprofile
+        DOCKER_IMAGE=${{ secrets.REGISTRY_LOGIN_SERVER }}/${REPO_NAME}/api-userprofile:${{ github.sha }}
+        docker build . -t ${DOCKER_IMAGE}
+        docker push ${DOCKER_IMAGE}
+
+
+
+  deployment_test:
+    runs-on: ubuntu-latest
+    needs: build_image
+    outputs:
+      userprofiledeployment-webapp-url: ${{ steps.userprofiledeployment.outputs.webapp-url }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy userprofile
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'openhack37d5bau5userprofile'
+          images: '${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ secrets.REPO_NAME }}/api-userprofile:${{ github.sha }}'
+          slot-name: 'staging'
+        id: 'userprofiledeployment'
+
+
+  validation_phase:
+    runs-on: ubuntu-latest
+    needs: deployment_test
+    steps:
+      - name: Check the deployed service URL
+        uses: jtalk/url-health-check-action@v1.5
+        with:
+          # Check the following URLs one by one sequentially
+          url: '${{ needs.deployment_test.outputs.userprofiledeployment-webapp-url }}/api/healthcheck/user'
+          # Follow redirects, or just report success on 3xx status codes
+          follow-redirect: no # Optional, defaults to "no"
+          # Fail this action after this many failed attempts
+          max-attempts: 3 # Optional, defaults to 1
+          # Delay between retries
+          retry-delay: 5s # Optional, only applicable to max-attempts > 1
+          # Retry all errors, including 404
+          retry-all: no # Optional, defaults to "no"
+
+
+  route-traffic-to-staging-50-pct:
+    runs-on: ubuntu-latest
+    needs: validation_phase
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: traffic-route-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "routing 50% of the traffic to staging for userprofile"
+        #az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        az webapp traffic-routing set --distribution staging=50 -g ${RG} -n ${NAME}
+
+  route-traffic-to-staging-100-pct:
+    runs-on: ubuntu-latest
+    needs: route-traffic-to-staging-50-pct
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: traffic-route-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "routing 50% of the traffic to staging for userprofile"
+        #az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        az webapp traffic-routing set --distribution staging=100 -g ${RG} -n ${NAME}
+
+  promote-staging-to-production:
+    runs-on: ubuntu-latest
+    needs: route-traffic-to-staging-100-pct
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: swap-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "swapping userprofile"
+        az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        # az webapp stop --name ${NAME} --resource-group ${RG} --slot staging
+
+
+
+  
+
