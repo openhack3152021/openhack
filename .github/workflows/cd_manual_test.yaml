@@ -1,4 +1,4 @@
-name: CD-Test
+name: CD-Manual-Test
 on:
   workflow_dispatch:
 
