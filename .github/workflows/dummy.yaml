@@ -3,9 +3,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  route-traffic-to-staging-50-pct:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: traffic-route-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "routing 50% of the traffic to staging for userprofile"
+        #az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        az webapp traffic-routing set --distribution staging=50 -g ${RG} -n ${NAME}
+
+
 # Check if there is any API Degradation
   verfiy_no_issue:
     runs-on: ubuntu-latest
+    needs: route-traffic-to-staging-50-pct
     steps:
     - uses: actions/checkout@v2
       name: Checkout Github
@@ -19,3 +36,66 @@ jobs:
         pip install requests
         cd ${GITHUB_WORKSPACE}/scripts
         python3.7 ${GITHUB_WORKSPACE}/scripts/verify_deployment.py
+# If there is a failure - shift traffic back to the production slot + Open an Issue
+  rollback-100-pct-to-production:
+    runs-on: ubuntu-latest
+    needs: verfiy_no_issue
+    if: ${{ failure() }}
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: traffic-route-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "routing 50% of the traffic to staging for userprofile"
+        #az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        az webapp traffic-routing set --distribution production=100 -g ${RG} -n ${NAME}
+# If there is no failure - route 100% to staging
+  route-traffic-to-staging-100-pct:
+    runs-on: ubuntu-latest
+    needs: [verfiy_no_issue]
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: traffic-route-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "routing 100% of the traffic to staging for userprofile"
+        #az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        az webapp traffic-routing set --distribution staging=100 -g ${RG} -n ${NAME}
+
+
+# Manual check for userprofile
+  cd-manual-approval:
+    name: Manual Approval
+    runs-on: ubuntu-latest
+    needs: route-traffic-to-staging-100-pct
+    environment:
+      name: openhack3152021.prod
+      url: https://openhack37d5bau5userprofile.azurewebsites.net/api/healthcheck/user
+    steps:
+    # Checkout
+    - name: Checkout
+      uses: actions/checkout@v1
+# Swap
+  userprofile-promote-staging-to-production:
+    runs-on: ubuntu-latest
+    needs: cd-manual-approval
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: swap-userprofile
+      run: |
+        RG=${{ secrets.RESOURCE_GROUP }}
+        NAME="openhack37d5bau5userprofile"
+        echo "swapping userprofile"
+        az webapp deployment slot swap  -g ${RG} -n ${NAME} --slot staging --target-slot production
+        # az webapp stop --name ${NAME} --resource-group ${RG} --slot staging
