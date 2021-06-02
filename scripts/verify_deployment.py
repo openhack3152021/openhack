@@ -4,7 +4,7 @@ import time
 from datetime import datetime, timedelta
 
 
-TIMEOUT = 600
+TIMEOUT = 120
 headers = {"Accept": "application/vnd.github.v3+json"}
 start_utc = datetime.utcnow()
 TITLE = "API Response time Degredation"
