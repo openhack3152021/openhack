@@ -31,5 +31,7 @@ while RUNNING:
         print("Got timeout")
         RUNNING = False
 
+    time.sleep(15)
+
 print("No issues found")
 exit(0)
